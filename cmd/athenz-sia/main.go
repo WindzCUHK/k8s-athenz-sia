@@ -14,8 +14,8 @@ import (
 	"github.com/cenkalti/backoff"
 	"github.com/pkg/errors"
 	"github.com/yahoo/k8s-athenz-identity/pkg/log"
-	"github.com/yahoo/k8s-athenz-identity/pkg/util"
 
+	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/AthenZ/k8s-athenz-sia/pkg/identity"
 )
 
@@ -42,40 +42,31 @@ func printVersion() {
 	}
 }
 
-// envOrDefault returns the value of the supplied variable or a default string.
-func envOrDefault(name string, defaultValue string) string {
-	v := os.Getenv(name)
-	if v == "" {
-		return defaultValue
-	}
-	return v
-}
-
 // parseFlags parses ENV and cmd line args and returns an IdentityConfig object
 func parseFlags(program string, args []string) (*identity.IdentityConfig, error) {
 	var (
-		mode                  = envOrDefault("MODE", "init")
-		backupMode            = envOrDefault("BACKUP_MODE", "read")
-		endpoint              = envOrDefault("ENDPOINT", "")
-		providerService       = envOrDefault("PROVIDER_SERVICE", "")
-		dnsSuffix             = envOrDefault("DNS_SUFFIX", "")
-		refreshInterval       = envOrDefault("REFRESH_INTERVAL", "24h")
-		delayJitterSeconds, _ = strconv.ParseInt(envOrDefault("DELAY_JITTER_SECONDS", "0"), 10, 64)
-		keyFile               = envOrDefault("KEY_FILE", "/var/run/athenz/service.key.pem")
-		certFile              = envOrDefault("CERT_FILE", "/var/run/athenz/service.cert.pem")
-		certSecret            = envOrDefault("CERT_SECRET", "")
-		caCertFile            = envOrDefault("CA_CERT_FILE", "/var/run/athenz/ca.cert.pem")
-		logDir                = envOrDefault("LOG_DIR", "/var/log/athenz-sia")
-		logLevel              = envOrDefault("LOG_LEVEL", "INFO")
-		namespace             = envOrDefault("NAMESPACE", "")
-		serviceAccount        = envOrDefault("SERVICEACCOUNT", "")
-		podIP                 = envOrDefault("POD_IP", "")
-		podUID                = envOrDefault("POD_UID", "")
-		saTokenFile           = envOrDefault("SA_TOKEN_FILE", "/var/run/secrets/kubernetes.io/bound-serviceaccount/token")
-		serverCACert          = envOrDefault("SERVER_CA_CERT", "")
-		roleCertDir           = envOrDefault("ROLECERT_DIR", "/var/run/athenz/")
-		targetDomainRoles     = envOrDefault("TARGET_DOMAIN_ROLES", "")
-		deleteInstanceID, _   = strconv.ParseBool(envOrDefault("DELETE_INSTANCE_ID", "true"))
+		mode                  = util.EnvOrDefault("MODE", "init")
+		backupMode            = util.EnvOrDefault("BACKUP_MODE", "read")
+		endpoint              = util.EnvOrDefault("ENDPOINT", "")
+		providerService       = util.EnvOrDefault("PROVIDER_SERVICE", "")
+		dnsSuffix             = util.EnvOrDefault("DNS_SUFFIX", "")
+		refreshInterval       = util.EnvOrDefault("REFRESH_INTERVAL", "24h")
+		delayJitterSeconds, _ = strconv.ParseInt(util.EnvOrDefault("DELAY_JITTER_SECONDS", "0"), 10, 64)
+		keyFile               = util.EnvOrDefault("KEY_FILE", "/var/run/athenz/service.key.pem")
+		certFile              = util.EnvOrDefault("CERT_FILE", "/var/run/athenz/service.cert.pem")
+		certSecret            = util.EnvOrDefault("CERT_SECRET", "")
+		caCertFile            = util.EnvOrDefault("CA_CERT_FILE", "/var/run/athenz/ca.cert.pem")
+		logDir                = util.EnvOrDefault("LOG_DIR", "/var/log/athenz-sia")
+		logLevel              = util.EnvOrDefault("LOG_LEVEL", "INFO")
+		namespace             = util.EnvOrDefault("NAMESPACE", "")
+		serviceAccount        = util.EnvOrDefault("SERVICEACCOUNT", "")
+		podIP                 = util.EnvOrDefault("POD_IP", "")
+		podUID                = util.EnvOrDefault("POD_UID", "")
+		saTokenFile           = util.EnvOrDefault("SA_TOKEN_FILE", "/var/run/secrets/kubernetes.io/bound-serviceaccount/token")
+		serverCACert          = util.EnvOrDefault("SERVER_CA_CERT", "")
+		roleCertDir           = util.EnvOrDefault("ROLECERT_DIR", "/var/run/athenz/")
+		targetDomainRoles     = util.EnvOrDefault("TARGET_DOMAIN_ROLES", "")
+		deleteInstanceID, _   = strconv.ParseBool(util.EnvOrDefault("DELETE_INSTANCE_ID", "true"))
 	)
 	f := flag.NewFlagSet(program, flag.ContinueOnError)
 	f.StringVar(&mode, "mode", mode, "mode, must be one of init or refresh, required")

@@ -3,8 +3,9 @@ package util
 import (
 	"fmt"
 	"net/url"
-	"os"
 	"strings"
+
+	"github.com/AthenZ/athenz/libs/go/sia/util"
 )
 
 const NS_DELIMITER = "-"
@@ -12,9 +13,9 @@ const DOMAIN_DELIMITER = "."
 
 // NamespaceToDomain converts a kube namespace to an Athenz domain
 func NamespaceToDomain(ns string) (domain string) {
-	d := envOrDefault("ATHENZ_DOMAIN", "")
-	pre := envOrDefault("ATHENZ_PREFIX", "")
-	suf := envOrDefault("ATHENZ_SUFFIX", "")
+	d := util.EnvOrDefault("ATHENZ_DOMAIN", "")
+	pre := util.EnvOrDefault("ATHENZ_PREFIX", "")
+	suf := util.EnvOrDefault("ATHENZ_SUFFIX", "")
 
 	if d == "" {
 		return pre + ns + suf
@@ -40,12 +41,4 @@ func RoleSpiffeURI(domain, role string) (*url.URL, error) {
 // DomainToDNSPart converts the Athenz domain into a DNS label
 func DomainToDNSPart(domain string) (part string) {
 	return strings.Replace(domain, ".", "-", -1)
-}
-
-func envOrDefault(name string, defaultValue string) string {
-	v := os.Getenv(name)
-	if v == "" {
-		return defaultValue
-	}
-	return v
 }

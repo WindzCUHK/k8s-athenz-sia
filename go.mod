@@ -1,13 +1,13 @@
 module github.com/AthenZ/k8s-athenz-sia
 
-go 1.17
+go 1.19
 
 replace github.com/AthenZ/k8s-athenz-sia/pkg/identity => ./pkg/identity
 
 replace github.com/AthenZ/k8s-athenz-sia/pkg/k8s => ./pkg/k8s
 
 require (
-	github.com/AthenZ/athenz v1.10.51
+	github.com/AthenZ/athenz v1.11.18
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/yahoo/k8s-athenz-identity v0.0.0-20210320000321-b0ce39fad833
@@ -28,7 +28,7 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/gnostic v0.5.7-v3refs // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
-	github.com/google/gofuzz v1.1.0 // indirect
+	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.1 // indirect
@@ -37,11 +37,11 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/sirupsen/logrus v1.4.2 // indirect
-	golang.org/x/net v0.3.1-0.20221206200815-1e63c2f08a10 // indirect
+	golang.org/x/net v0.5.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20220223155221-ee480838109b // indirect
-	golang.org/x/sys v0.3.0 // indirect
-	golang.org/x/term v0.3.0 // indirect
-	golang.org/x/text v0.5.0 // indirect
+	golang.org/x/sys v0.4.0 // indirect
+	golang.org/x/term v0.4.0 // indirect
+	golang.org/x/text v0.6.0 // indirect
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
