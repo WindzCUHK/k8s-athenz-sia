@@ -147,8 +147,8 @@ func parseFlags(program string, args []string) (*identity.IdentityConfig, error)
 		pollInterval = util.DefaultPollInterval
 	}
 	pollTokenInterval := tri
-	if pollTokenInterval > 4*time.Hour {
-		pollTokenInterval = 4 * time.Hour
+	if pollTokenInterval > identity.DEFAULT_POLL_TOKEN_INTERVAL {
+		pollTokenInterval = identity.DEFAULT_POLL_TOKEN_INTERVAL
 	}
 	reloader, err := util.NewCertReloader(util.ReloadConfig{
 		KeyFile:      keyFile,
@@ -213,7 +213,7 @@ func parseFlags(program string, args []string) (*identity.IdentityConfig, error)
 		RoleCertFilenameDelimiter: roleCertFilenameDelimiter,
 		RoleAuthHeader:            roleAuthHeader,
 		TokenType:                 tokenType,
-		TokenRefresh:              tri,
+		TokenRefresh:              pollTokenInterval,
 		TokenServerAddr:           tokenServerAddr,
 		TokenDir:                  tokenDir,
 		MetricsServerAddr:         metricsServerAddr,
