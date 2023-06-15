@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/AthenZ/k8s-athenz-sia/pkg/log"
+	"github.com/AthenZ/k8s-athenz-sia/pkg/util"
 	"github.com/cenkalti/backoff"
 	"github.com/pkg/errors"
-	"github.com/yahoo/k8s-athenz-identity/pkg/log"
-	"github.com/yahoo/k8s-athenz-identity/pkg/util"
 )
 
 func Certificated(idConfig *IdentityConfig, stopChan <-chan struct{}) (error, <-chan struct{}) {
