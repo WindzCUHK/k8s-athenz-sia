@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AthenZ/k8s-athenz-sia/pkg/log"
-	"github.com/AthenZ/k8s-athenz-sia/pkg/util"
+	"github.com/AthenZ/k8s-athenz-sia/third_party/log"
+	"github.com/AthenZ/k8s-athenz-sia/third_party/util"
 	"github.com/cenkalti/backoff"
 	"github.com/pkg/errors"
 )

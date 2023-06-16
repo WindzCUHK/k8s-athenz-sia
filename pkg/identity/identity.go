@@ -22,8 +22,8 @@ import (
 
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/athenzutils"
-	"github.com/AthenZ/k8s-athenz-sia/pkg/log"
-	"github.com/AthenZ/k8s-athenz-sia/pkg/util"
+	"github.com/AthenZ/k8s-athenz-sia/third_party/log"
+	"github.com/AthenZ/k8s-athenz-sia/third_party/util"
 
 	"github.com/AthenZ/k8s-athenz-sia/pkg/k8s"
 	extutil "github.com/AthenZ/k8s-athenz-sia/pkg/util"

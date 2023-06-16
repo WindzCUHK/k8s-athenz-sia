@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AthenZ/k8s-athenz-sia/pkg/log"
+	"github.com/AthenZ/k8s-athenz-sia/third_party/log"
 
 	// using git submodule to import internal package (special package in golang)
 	// https://github.com/golang/go/wiki/Modules#can-a-module-depend-on-an-internal-in-another
