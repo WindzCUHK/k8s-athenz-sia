@@ -1,0 +1,21 @@
+header:
+  license:
+    spdx-id: Apache-2.0
+    copyright-owner: Yahoo Japan Corporation
+    software-name: k8s-athenz-sia
+  paths:
+    - '**/*.go'
+  paths-ignore:
+    - 'third_party/**'
+    - 'x509-certificate-exporter'
+    - '**/*.md'
+    - '**/.*'
+    - 'LICENSE'
+    - 'MAINTAINERS'
+    - '**/go.mod'
+    - '**/go.sum'
+  comment: on-failure
+
+dependency:
+  files:
+    - go.mod # If this is a Go project.
