@@ -30,11 +30,9 @@ var (
 	DEFAULT_ORGANIZATION        string
 	DEFAULT_ORGANIZATIONAL_UNIT = "Athenz"
 
-	DEFAULT_POLL_TOKEN_INTERVAL = 4 * time.Hour
-
 	// default values for role tokens and access tokens
-	DEFAULT_TOKEN_EXPIRY_TIME     = "120"
-	DEFAULT_TOKEN_EXPIRY_TIME_INT int
+	DEFAULT_TOKEN_REFRESH = 30 * time.Minute
+	DEFAULT_TOKEN_EXPIRY  = time.Duration(0)
 
 	// DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES may be overwritten with go build option (e.g. "-X identity.DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES=5")
 	DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES     = "5"
@@ -50,7 +48,6 @@ var (
 func init() {
 	// initializes default values from build args
 	DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES_INT, _ = strconv.Atoi(DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES)
-	DEFAULT_TOKEN_EXPIRY_TIME_INT, _ = strconv.Atoi(DEFAULT_TOKEN_EXPIRY_TIME)
 }
 
 func DefaultIdentityConfig() *IdentityConfig {
@@ -81,7 +78,8 @@ func DefaultIdentityConfig() *IdentityConfig {
 		RoleCertFilenameDelimiter: DEFAULT_ROLE_CERT_FILENAME_DELIMITER,
 		RoleAuthHeader:            DEFAULT_ROLE_AUTH_HEADER,
 		TokenType:                 "accesstoken",
-		TokenRefresh:              30 * time.Minute,
+		TokenRefresh:              DEFAULT_TOKEN_REFRESH,
+		TokenExpiry:               DEFAULT_TOKEN_EXPIRY,
 		TokenServerAddr:           "",
 		TokenDir:                  "",
 		MetricsServerAddr:         "",
@@ -94,7 +92,8 @@ func DefaultIdentityConfig() *IdentityConfig {
 		rawMode:               "init",
 		rawRefresh:            "24h",
 		rawDelayJitterSeconds: "0",
-		rawTokenRefresh:       "30m",
+		rawTokenRefresh:       DEFAULT_TOKEN_REFRESH.String(),
+		rawTokenExpiry:        DEFAULT_TOKEN_EXPIRY.String(),
 		rawDeleteInstanceID:   "true",
 		rawSidecarConfigPath:  DEFAULT_SIDECAR_CONFIG_PATH,
 

@@ -50,6 +50,7 @@ type IdentityConfig struct {
 	RoleAuthHeader            string
 	TokenType                 string
 	TokenRefresh              time.Duration
+	TokenExpiry               time.Duration
 	TokenServerAddr           string
 	TokenDir                  string
 	MetricsServerAddr         string
@@ -62,6 +63,7 @@ type IdentityConfig struct {
 	rawRefresh            string
 	rawDelayJitterSeconds string
 	rawTokenRefresh       string
+	rawTokenExpiry        string
 	rawDeleteInstanceID   string
 	rawSidecarConfigPath  string
 }
