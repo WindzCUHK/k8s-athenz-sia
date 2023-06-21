@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/AthenZ/k8s-athenz-sia/pkg/config"
+	"github.com/AthenZ/k8s-athenz-sia/pkg/token"
 	"github.com/AthenZ/k8s-athenz-sia/third_party/log"
 	"github.com/AthenZ/k8s-athenz-sia/third_party/util"
 	"github.com/cenkalti/backoff"
@@ -295,7 +296,7 @@ func Certificated(idConfig *config.IdentityConfig, stopChan <-chan struct{}) (er
 	}
 
 	tokenChan := make(chan struct{}, 1)
-	err, tokenSdChan := Tokend(idConfig, tokenChan)
+	err, tokenSdChan := token.Tokend(idConfig, tokenChan)
 	if err != nil {
 		log.Errorf("Error starting token provider[%s]", err)
 		return err, nil

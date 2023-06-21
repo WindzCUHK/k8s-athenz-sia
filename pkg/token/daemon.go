@@ -1,79 +1,32 @@
-// Copyright 2023 Yahoo Japan Corporation
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-package identity
+package token
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
-	"sync"
+	"strings"
 	"time"
 
-	"github.com/AthenZ/k8s-athenz-sia/pkg/config"
-	"github.com/AthenZ/k8s-athenz-sia/third_party/log"
-	"github.com/AthenZ/k8s-athenz-sia/third_party/util"
+	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/libs/go/athenzutils"
 	"github.com/cenkalti/backoff"
 	"github.com/pkg/errors"
+
+	"github.com/AthenZ/k8s-athenz-sia/pkg/config"
+	extutil "github.com/AthenZ/k8s-athenz-sia/pkg/util"
+	"github.com/AthenZ/k8s-athenz-sia/third_party/log"
+	"github.com/AthenZ/k8s-athenz-sia/third_party/util"
 )
 
-type TokenCache interface {
-	Update(token Token)
-	Load(domain, role string) Token
-	Range(func(Token) error) error
-}
-
-type LockedTokenCache struct {
-	cache map[string]map[string]Token
-	lock  sync.RWMutex
-}
-
-func (c *LockedTokenCache) Update(t Token) {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-	roleMap := c.cache[t.Domain()]
-	if roleMap == nil {
-		roleMap = make(map[string]Token)
-		c.cache[t.Domain()] = roleMap
-	}
-	roleMap[t.Role()] = t
-}
-
-func (c *LockedTokenCache) Load(domain, role string) Token {
-	c.lock.RLock()
-	defer c.lock.RUnlock()
-	roleMap := c.cache[domain]
-	return roleMap[role]
-}
-
-func (c *LockedTokenCache) Range(f func(Token) error) error {
-	c.lock.RLock()
-	defer c.lock.RUnlock()
-	for _, roleMap := range c.cache {
-		for _, token := range roleMap {
-			err := f(token)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
+// TODO
+// targets with expiry + proxyforprincipal
 
 // Tokend starts the token server and refreshes tokens periodically.
 func Tokend(idConfig *config.IdentityConfig, stopChan <-chan struct{}) (error, <-chan struct{}) {
@@ -92,12 +45,7 @@ func Tokend(idConfig *config.IdentityConfig, stopChan <-chan struct{}) (error, <
 	accessTokenCache = &LockedTokenCache{cache: make(map[string]map[string]Token)}
 
 	var keyPem, certPem []byte
-
-	handler, err := InitIdentityHandler(idConfig)
-	if err != nil {
-		log.Errorf("Failed to initialize client for tokens: %s", err.Error())
-		return err, nil
-	}
+	var err error
 
 	writeFiles := func() error {
 
@@ -169,7 +117,7 @@ func Tokend(idConfig *config.IdentityConfig, stopChan <-chan struct{}) (error, <
 
 		log.Infof("Attempting to get tokens from identity provider: targets[%s]...", idConfig.TargetDomainRoles)
 
-		roleTokens, accessTokens, err := handler.GetToken(certPem, keyPem)
+		roleTokens, accessTokens, err := GetToken(idConfig, certPem, keyPem)
 		if err != nil {
 			log.Warnf("Error while requesting tokens: %s", err.Error())
 			return err
@@ -316,4 +264,75 @@ func Tokend(idConfig *config.IdentityConfig, stopChan <-chan struct{}) (error, <
 	}()
 
 	return nil, shutdownChan
+}
+
+// GetToken makes ZTS API calls to generate an X.509 role certificate
+func GetToken(cfg *config.IdentityConfig, certPEM, keyPEM []byte) (roletokens [](*RoleToken), accesstokens [](*AccessToken), err error) {
+
+	tlsConfig := &tls.Config{
+		MinVersion: tls.VersionTLS12,
+	}
+	tlsConfig.GetClientCertificate = func(_ *tls.CertificateRequestInfo) (*tls.Certificate, error) {
+		cert, err := tls.X509KeyPair(certPEM, keyPEM)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to load tls client key pair for PostAccessTokenRequest, err: %v", err)
+		}
+		return &cert, nil
+	}
+	t := &http.Transport{
+		TLSClientConfig: tlsConfig,
+	}
+	if cfg.ServerCACert != "" {
+		certPool := x509.NewCertPool()
+		caCert, err := ioutil.ReadFile(cfg.ServerCACert)
+		if err != nil {
+			return nil, nil, fmt.Errorf("Failed to load tls client ca certificate for PostAccessTokenRequest, err: %v", err)
+		}
+		certPool.AppendCertsFromPEM(caCert)
+		tlsConfig.RootCAs = certPool
+		t.TLSClientConfig = tlsConfig
+	}
+
+	// In init mode, the existing ZTS Client does not have client certificate set.
+	// When config.Reloader.GetLatestCertificate() is called to load client certificate, the first certificate has not written to the file yet.
+	// Therefore, ZTS Client must be renewed to make sure the ZTS Client loads the latest client certificate.
+	//
+	// The intermediate certificates may be different between each ZTS.
+	// Therefore, ZTS Client for PostRoleCertificateRequest must share the same endpoint as PostInstanceRegisterInformation/PostInstanceRefreshInformation
+	roleClient := zts.NewClient(cfg.Endpoint, t)
+	expireTimeMs := int32(120 * 60) // TODO: remove hardcoded value
+
+	for _, domainrole := range strings.Split(cfg.TargetDomainRoles, ",") {
+		dr := strings.Split(domainrole, ":role.")
+
+		if strings.Contains(cfg.TokenType, "accesstoken") {
+			// TODO: move to init
+			request := athenzutils.GenerateAccessTokenRequestString(dr[0], extutil.ServiceAccountToService(cfg.ServiceAccount), dr[1], "", "", int(expireTimeMs))
+			accessTokenResponse, err := roleClient.PostAccessTokenRequest(zts.AccessTokenRequest(request))
+			if err != nil || accessTokenResponse.Access_token == "" {
+				return nil, nil, fmt.Errorf("PostAccessTokenRequest failed for domain[%s], role[%s], err: %v", dr[0], dr[1], err)
+			}
+			accesstokens = append(accesstokens, &AccessToken{
+				domain: dr[0],
+				role:   dr[1],
+				raw:    accessTokenResponse.Access_token,
+				expiry: int64(*accessTokenResponse.Expires_in),
+			})
+		}
+
+		if strings.Contains(cfg.TokenType, "roletoken") {
+			roletokenResponse, err := roleClient.GetRoleToken(zts.DomainName(dr[0]), zts.EntityList(dr[1]), &expireTimeMs, &expireTimeMs, "")
+			if err != nil || roletokenResponse.Token == "" {
+				return nil, nil, fmt.Errorf("GetRoleToken failed for domain[%s], role[%s], err: %v", dr[0], dr[1], err)
+			}
+			roletokens = append(roletokens, &RoleToken{
+				domain: dr[0],
+				role:   dr[1],
+				raw:    roletokenResponse.Token,
+				expiry: roletokenResponse.ExpiryTime,
+			})
+		}
+	}
+
+	return roletokens, accesstokens, err
 }
