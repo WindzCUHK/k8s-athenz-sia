@@ -73,15 +73,62 @@ func (idConfig *IdentityConfig) loadFromYAML(configFilePath string) error {
 		return nil
 	}
 
-	// TODO: load and use config file values
-	// yamlCfg.RoleToken.Enable
-	idConfig.Endpoint = yamlCfg.RoleToken.AthenzURL
-	// yamlCfg.RoleToken.AthenzCAPath
-	// yamlCfg.RoleToken.CertPath
-	// yamlCfg.RoleToken.CertKeyPath
-	// yamlCfg.RoleToken.Expiry
-	// yamlCfg.RoleToken.RefreshPeriod
+	// unset default
+	idConfig.TokenType = ""
 
+	// TODO: remove this comment
+	// sidecar spec:
+	// TokenRefresh > TokenExpiry, error
+	// TokenExpiry == 0, request without param
+	// TokenRefresh == 0, use default 30min
+
+	// parse values from config file
+	idConfig.TokenServerAddr = fmt.Sprintf("%s:%d", yamlCfg.Server.Address, yamlCfg.Server.Port)
+	rtEnable := yamlCfg.RoleToken.Enable
+	if rtEnable {
+		idConfig.TokenType += "roletoken+"
+		// ignore yamlCfg.RoleToken.PrincipalAuthHeader
+		idConfig.Endpoint = yamlCfg.RoleToken.AthenzURL
+		idConfig.ServerCACert = file.GetActualValue(yamlCfg.RoleToken.AthenzCAPath)
+		idConfig.KeyFile = yamlCfg.RoleToken.CertKeyPath
+		idConfig.CertFile = yamlCfg.RoleToken.CertPath
+		idConfig.rawTokenExpiry = yamlCfg.RoleToken.Expiry
+		idConfig.rawTokenRefresh = yamlCfg.RoleToken.RefreshPeriod
+		// ignore yamlCfg.RoleToken.Retry
+	}
+	atEnable := yamlCfg.AccessToken.Enable
+	if atEnable {
+		idConfig.TokenType += "accesstoken+"
+		// ignore yamlCfg.AccessToken.PrincipalAuthHeader
+		idConfig.Endpoint = yamlCfg.AccessToken.AthenzURL
+		idConfig.ServerCACert = file.GetActualValue(yamlCfg.AccessToken.AthenzCAPath)
+		idConfig.KeyFile = yamlCfg.AccessToken.CertKeyPath
+		idConfig.CertFile = yamlCfg.AccessToken.CertPath
+		idConfig.rawTokenExpiry = yamlCfg.AccessToken.Expiry
+		idConfig.rawTokenRefresh = yamlCfg.AccessToken.RefreshPeriod
+		// ignore yamlCfg.AccessToken.Retry
+	}
+	idConfig.TokenRefresh, err = time.ParseDuration(idConfig.rawTokenRefresh)
+	if err != nil {
+		return fmt.Errorf("Invalid expiry in YAML [%q], %v", idConfig.rawTokenRefresh, err)
+	}
+	idConfig.TokenExpiry, err = time.ParseDuration(idConfig.rawTokenExpiry)
+	if err != nil {
+		return fmt.Errorf("Invalid refreshPeriod in YAML [%q], %v", idConfig.rawTokenExpiry, err)
+	}
+	// TODO: parse others values from config file
+
+	if rtEnable && atEnable {
+		if yamlCfg.RoleToken.AthenzURL != yamlCfg.AccessToken.AthenzURL ||
+			yamlCfg.RoleToken.AthenzCAPath != yamlCfg.AccessToken.AthenzCAPath ||
+			yamlCfg.RoleToken.CertKeyPath != yamlCfg.AccessToken.CertKeyPath ||
+			yamlCfg.RoleToken.CertPath != yamlCfg.AccessToken.CertPath ||
+			yamlCfg.RoleToken.Expiry != yamlCfg.AccessToken.Expiry ||
+			yamlCfg.RoleToken.RefreshPeriod != yamlCfg.AccessToken.RefreshPeriod {
+			log.Warnf("Both role token and access token endpoint are enabled, but configurated with different values. Use access token's config, ignore role token's config")
+		}
+	}
+	log.Infof("Successfully loaded configuration from YAML [%s]", configFilePath)
 	return nil
 }
 
@@ -117,6 +164,7 @@ func (idConfig *IdentityConfig) loadFromENV() error {
 	loadEnv("ROLE_AUTH_HEADER", &idConfig.RoleAuthHeader)
 	loadEnv("TOKEN_TYPE", &idConfig.TokenType)
 	loadEnv("TOKEN_REFRESH_INTERVAL", &idConfig.rawTokenRefresh)
+	loadEnv("TOKEN_EXPIRY", &idConfig.rawTokenExpiry)
 	loadEnv("TOKEN_SERVER_ADDR", &idConfig.TokenServerAddr)
 	loadEnv("TOKEN_DIR", &idConfig.TokenDir)
 	loadEnv("METRICS_SERVER_ADDR", &idConfig.MetricsServerAddr)
@@ -145,6 +193,10 @@ func (idConfig *IdentityConfig) loadFromENV() error {
 	idConfig.TokenRefresh, err = time.ParseDuration(idConfig.rawTokenRefresh)
 	if err != nil {
 		return fmt.Errorf("Invalid TOKEN_REFRESH_INTERVAL [%q], %v", idConfig.rawTokenRefresh, err)
+	}
+	idConfig.TokenExpiry, err = time.ParseDuration(idConfig.rawTokenExpiry)
+	if err != nil {
+		return fmt.Errorf("Invalid TOKEN_EXPIRY [%q], %v", idConfig.rawTokenExpiry, err)
 	}
 	idConfig.DeleteInstanceID, err = strconv.ParseBool(idConfig.rawDeleteInstanceID)
 	if err != nil {
@@ -183,6 +235,7 @@ func (idConfig *IdentityConfig) loadFromFlag(program string, args []string) erro
 	// RoleAuthHeader
 	f.StringVar(&idConfig.TokenType, "token-type", idConfig.TokenType, "type of the role token to request (\"roletoken\", \"accesstoken\" or \"roletoken+accesstoken\")")
 	f.DurationVar(&idConfig.TokenRefresh, "token-refresh-interval", idConfig.TokenRefresh, "token refresh interval")
+	f.DurationVar(&idConfig.TokenExpiry, "token-expiry", idConfig.TokenExpiry, "token expiry duration")
 	f.StringVar(&idConfig.TokenServerAddr, "token-server-addr", idConfig.TokenServerAddr, "HTTP server address to provide tokens (required for token provisioning)")
 	f.StringVar(&idConfig.TokenDir, "token-dir", idConfig.TokenDir, "directory to write token files")
 	f.StringVar(&idConfig.MetricsServerAddr, "metrics-server-addr", idConfig.MetricsServerAddr, "HTTP server address to provide metrics")
@@ -213,6 +266,10 @@ func (idConfig *IdentityConfig) loadFromFlag(program string, args []string) erro
 }
 
 func (idConfig *IdentityConfig) validateAndInit() error {
+
+	if idConfig.TokenRefresh >= idConfig.TokenExpiry {
+		return fmt.Errorf("Invalid TokenRefresh [%s], value >= TokenExpiry [%s]", idConfig.TokenRefresh.String(), idConfig.TokenExpiry.String())
+	}
 
 	// TODO: clarify unused logic
 	// pollTokenInterval := idConfig.TokenRefresh

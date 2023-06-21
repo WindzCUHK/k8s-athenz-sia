@@ -88,7 +88,6 @@ func DefaultIdentityConfig() *IdentityConfig {
 		LogDir:   "",
 		LogLevel: "INFO",
 
-		// raw strings before parsing
 		rawMode:               "init",
 		rawRefresh:            "24h",
 		rawDelayJitterSeconds: "0",

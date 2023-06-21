@@ -59,6 +59,7 @@ type IdentityConfig struct {
 	LogDir   string
 	LogLevel string
 
+	// raw strings before parsing
 	rawMode               string
 	rawRefresh            string
 	rawDelayJitterSeconds string
