@@ -73,13 +73,13 @@ func (idConfig *IdentityConfig) loadFromYAML(configFilePath string) error {
 		return nil
 	}
 
-	// unset default
+	// unset SIA default to sidecar default
 	idConfig.TokenType = ""
 
 	// TODO: remove this comment
 	// sidecar spec:
-	// TokenRefresh > TokenExpiry, error
-	// TokenExpiry == 0, request without param
+	// TokenRefresh > TokenExpiry, return error
+	// TokenExpiry == 0, request to ZTS without param
 	// TokenRefresh == 0, use default 30min
 
 	// parse values from config file
