@@ -15,7 +15,7 @@ const (
 )
 
 func postRoleToken(d *daemon, w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
+	if r.Method != http.MethodPost {
 		errMsg := fmt.Sprintf("Method: %s\t%s", r.Method, http.StatusText(http.StatusMethodNotAllowed))
 		http.Error(w, errMsg, http.StatusMethodNotAllowed)
 		log.Warnf(errMsg)
