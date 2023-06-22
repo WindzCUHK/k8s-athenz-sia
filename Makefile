@@ -73,6 +73,10 @@ check-license-header:
 	license-eye -c .licenserc.yaml header check
 	# license-eye -c .licenserc.yaml header fix
 
+generate:
+	# go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest
+	go generate ./...
+
 submodule-update:
 	git submodule update --recursive --init
 
