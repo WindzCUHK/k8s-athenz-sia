@@ -75,6 +75,8 @@ func (idConfig *IdentityConfig) loadFromYAML(configFilePath string) error {
 
 	// unset SIA default to sidecar default
 	idConfig.TokenType = ""
+	idConfig.Init = false
+	idConfig.rawMode = "refresh"
 
 	// TODO: remove this comment
 	// sidecar spec:
