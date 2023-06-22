@@ -106,13 +106,13 @@ func newHandlerFunc(d *daemon) http.HandlerFunc {
 			errMsg = fmt.Sprintf("http headers not set: %s[%s] %s[%s].", DOMAIN_HEADER, domain, ROLE_HEADER, role)
 		} else {
 			k := CacheKey{Domain: domain, Role: role, MinExpiry: d.tokenExpiryInSecond}
-			if d.accessTokenCache != nil {
+			if d.tokenType.Has(ACCESS_TOKEN) {
 				aToken = d.accessTokenCache.Load(k)
 				if aToken == nil {
 					errMsg = fmt.Sprintf("domain[%s] role[%s] was not found in cache.", domain, role)
 				}
 			}
-			if d.roleTokenCache != nil {
+			if d.tokenType.Has(ROLE_TOKEN) {
 				rToken = d.roleTokenCache.Load(k)
 				if rToken == nil {
 					errMsg = fmt.Sprintf("domain[%s] role[%s] was not found in cache.", domain, role)

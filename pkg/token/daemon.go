@@ -41,11 +41,11 @@ func newDaemon(idConfig *config.IdentityConfig, tt Type) (*daemon, error) {
 
 	// initialize token cache with placeholder
 	tokenExpiryInSecond := int(idConfig.TokenExpiry.Seconds())
-	var accessTokenCache, roleTokenCache TokenCache
+	accessTokenCache := NewLockedTokenCache()
+	roleTokenCache := NewLockedTokenCache()
 	targets := strings.Split(idConfig.TargetDomainRoles, ",")
 	if len(targets) != 1 || idConfig.TargetDomainRoles != "" {
 		if tt.Has(ACCESS_TOKEN) {
-			accessTokenCache = NewLockedTokenCache()
 			for _, dr := range targets {
 				domain, role, err := athenz.SplitRoleName(dr)
 				if err != nil {
@@ -55,7 +55,6 @@ func newDaemon(idConfig *config.IdentityConfig, tt Type) (*daemon, error) {
 			}
 		}
 		if tt.Has(ROLE_TOKEN) {
-			roleTokenCache = NewLockedTokenCache()
 			for _, dr := range targets {
 				domain, role, err := athenz.SplitRoleName(dr)
 				if err != nil {
@@ -153,13 +152,8 @@ func (d *daemon) writeFiles() error {
 // fetchTokensAndUpdateCaches fetches tokens by ZTS API calls, and then updates caches as a batch
 func (d *daemon) fetchTokensAndUpdateCaches() error {
 
-	var atTargets, rtTargets []CacheKey
-	if d.accessTokenCache != nil {
-		atTargets = d.accessTokenCache.Keys()
-	}
-	if d.roleTokenCache != nil {
-		rtTargets = d.roleTokenCache.Keys()
-	}
+	atTargets := d.accessTokenCache.Keys()
+	rtTargets := d.roleTokenCache.Keys()
 	log.Infof("Attempting to fetch tokens from Athenz ZTS server: access token targets[%v], role token targets[%v]...", atTargets, rtTargets)
 
 	// fetch tokens

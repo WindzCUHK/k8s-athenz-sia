@@ -58,6 +58,8 @@ func (c *LockedTokenCache) Range(f func(k CacheKey, t Token) error) error {
 }
 
 func (c *LockedTokenCache) Keys() []CacheKey {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
 	r := make([]CacheKey, 0, len(c.cache))
 	c.Range(func(k CacheKey, t Token) error {
 		r = append(r, k)
