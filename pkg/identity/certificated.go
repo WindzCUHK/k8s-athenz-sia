@@ -290,6 +290,7 @@ func Certificated(idConfig *config.IdentityConfig, stopChan <-chan struct{}) (er
 
 	if idConfig.Init {
 		if err != nil {
+			// TODO: infinite retry, fix dead code
 			log.Errorf("Failed to get initial certificate after multiple retries: %s", err.Error())
 			return err, nil
 		}
@@ -324,6 +325,7 @@ func Certificated(idConfig *config.IdentityConfig, stopChan <-chan struct{}) (er
 			case <-t.C:
 				err := backoff.RetryNotify(run, getExponentialBackoff(), notifyOnErr)
 				if err != nil {
+					// TODO: infinite retry, fix dead code
 					log.Errorf("Failed to refresh x509 certificate after multiple retries: %s", err.Error())
 				}
 			case <-stopChan:

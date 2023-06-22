@@ -212,6 +212,7 @@ func Tokend(idConfig *config.IdentityConfig, stopChan <-chan struct{}) (error, <
 	// initialize
 	err = d.updateTokenWithRetry()
 	if err != nil {
+		// TODO: infinite retry, fix dead code
 		log.Errorf("Failed to get initial tokens after multiple retries: %s", err.Error())
 	}
 	if idConfig.Init {
@@ -244,6 +245,7 @@ func Tokend(idConfig *config.IdentityConfig, stopChan <-chan struct{}) (error, <
 			case <-t.C:
 				err := d.updateTokenWithRetry()
 				if err != nil {
+					// TODO: infinite retry, fix dead code
 					log.Errorf("Failed to refresh tokens after multiple retries: %s", err.Error())
 				}
 			case <-stopChan:
