@@ -108,13 +108,23 @@ func (idConfig *IdentityConfig) loadFromYAML(configFilePath string) error {
 		idConfig.rawTokenRefresh = yamlCfg.AccessToken.RefreshPeriod
 		// ignore yamlCfg.AccessToken.Retry
 	}
-	idConfig.TokenRefresh, err = time.ParseDuration(idConfig.rawTokenRefresh)
-	if err != nil {
-		return fmt.Errorf("Invalid expiry in YAML [%q], %v", idConfig.rawTokenRefresh, err)
+	if idConfig.rawTokenRefresh == "" {
+		// restore default
+		idConfig.rawTokenRefresh = idConfig.TokenRefresh.String()
+	} else {
+		idConfig.TokenRefresh, err = time.ParseDuration(idConfig.rawTokenRefresh)
+		if err != nil {
+			return fmt.Errorf("Invalid expiry in YAML [%q], %v", idConfig.rawTokenRefresh, err)
+		}
 	}
-	idConfig.TokenExpiry, err = time.ParseDuration(idConfig.rawTokenExpiry)
-	if err != nil {
-		return fmt.Errorf("Invalid refreshPeriod in YAML [%q], %v", idConfig.rawTokenExpiry, err)
+	if idConfig.rawTokenExpiry == "" {
+		// restore default
+		idConfig.rawTokenExpiry = idConfig.TokenExpiry.String()
+	} else {
+		idConfig.TokenExpiry, err = time.ParseDuration(idConfig.rawTokenExpiry)
+		if err != nil {
+			return fmt.Errorf("Invalid refreshPeriod in YAML [%q], %v", idConfig.rawTokenExpiry, err)
+		}
 	}
 	// TODO: parse others values from config file
 
