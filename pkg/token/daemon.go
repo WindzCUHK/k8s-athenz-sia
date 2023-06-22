@@ -42,24 +42,27 @@ func newDaemon(idConfig *config.IdentityConfig, tt Type) (*daemon, error) {
 	// initialize token cache with placeholder
 	tokenExpiryInSecond := int(idConfig.TokenExpiry.Seconds())
 	var accessTokenCache, roleTokenCache TokenCache
-	if tt.Has(ACCESS_TOKEN) {
-		accessTokenCache = NewLockedTokenCache()
-		for _, dr := range strings.Split(idConfig.TargetDomainRoles, ",") {
-			domain, role, err := athenz.SplitRoleName(dr)
-			if err != nil {
-				return nil, err
+	targets := strings.Split(idConfig.TargetDomainRoles, ",")
+	if len(targets) != 1 || idConfig.TargetDomainRoles != "" {
+		if tt.Has(ACCESS_TOKEN) {
+			accessTokenCache = NewLockedTokenCache()
+			for _, dr := range targets {
+				domain, role, err := athenz.SplitRoleName(dr)
+				if err != nil {
+					return nil, fmt.Errorf("Invalid TargetDomainRoles[%s]: %s", idConfig.TargetDomainRoles, err.Error())
+				}
+				accessTokenCache.Store(CacheKey{Domain: domain, Role: role, MinExpiry: tokenExpiryInSecond}, &AccessToken{})
 			}
-			accessTokenCache.Store(CacheKey{Domain: domain, Role: role, MinExpiry: tokenExpiryInSecond}, &AccessToken{})
 		}
-	}
-	if tt.Has(ROLE_TOKEN) {
-		roleTokenCache = NewLockedTokenCache()
-		for _, dr := range strings.Split(idConfig.TargetDomainRoles, ",") {
-			domain, role, err := athenz.SplitRoleName(dr)
-			if err != nil {
-				return nil, err
+		if tt.Has(ROLE_TOKEN) {
+			roleTokenCache = NewLockedTokenCache()
+			for _, dr := range targets {
+				domain, role, err := athenz.SplitRoleName(dr)
+				if err != nil {
+					return nil, fmt.Errorf("Invalid TargetDomainRoles[%s]: %s", idConfig.TargetDomainRoles, err.Error())
+				}
+				roleTokenCache.Store(CacheKey{Domain: domain, Role: role, MinExpiry: tokenExpiryInSecond}, &RoleToken{})
 			}
-			roleTokenCache.Store(CacheKey{Domain: domain, Role: role, MinExpiry: tokenExpiryInSecond}, &RoleToken{})
 		}
 	}
 
@@ -204,11 +207,13 @@ func Tokend(idConfig *config.IdentityConfig, stopChan <-chan struct{}) (error, <
 		return nil, nil
 	}
 
+	log.Infof("newDaemon")
 	d, err := newDaemon(idConfig, tt)
 	if err != nil {
 		return err, nil
 	}
 
+	log.Infof("initialize")
 	// initialize
 	err = d.updateTokenWithRetry()
 	if err != nil {
@@ -220,6 +225,7 @@ func Tokend(idConfig *config.IdentityConfig, stopChan <-chan struct{}) (error, <
 		return nil, nil
 	}
 
+	log.Infof("start token server")
 	// start token server
 	httpServer := &http.Server{
 		Addr:    idConfig.TokenServerAddr,

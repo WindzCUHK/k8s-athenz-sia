@@ -56,7 +56,7 @@ func printVersion() {
 func main() {
 
 	// one-time logger for loading user config
-	log.InitLogger(filepath.Join("", fmt.Sprintf("%s.%s.log", serviceName, "INFO")), "INFO", true)
+	log.InitLogger("", "INFO", true)
 	idConfig, err := config.LoadConfig(filepath.Base(os.Args[0]), os.Args[1:])
 	if err != nil {
 		switch err {
