@@ -277,8 +277,8 @@ func (idConfig *IdentityConfig) loadFromFlag(program string, args []string) erro
 
 func (idConfig *IdentityConfig) validateAndInit() error {
 
-	if idConfig.TokenRefresh >= idConfig.TokenExpiry {
-		return fmt.Errorf("Invalid TokenRefresh [%s], value >= TokenExpiry [%s]", idConfig.TokenRefresh.String(), idConfig.TokenExpiry.String())
+	if idConfig.TokenExpiry != 0 && idConfig.TokenRefresh >= idConfig.TokenExpiry {
+		return fmt.Errorf("Invalid TokenRefresh[%s] >= TokenExpiry[%s]", idConfig.TokenRefresh.String(), idConfig.TokenExpiry.String())
 	}
 
 	// TODO: clarify unused logic
