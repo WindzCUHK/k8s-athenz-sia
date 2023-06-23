@@ -68,7 +68,7 @@ func postRoleToken(d *daemon, w http.ResponseWriter, r *http.Request) {
 		log.Debugf("Role token cache miss, attempting to fetch token from Athenz ZTS server: target[%s]", k.String())
 		// on cache miss, fetch token from Athenz ZTS server
 		rToken, err = fetchRoleToken(d.ztsClient, k)
-		if err == nil {
+		if err != nil {
 			return
 		}
 		// update cache

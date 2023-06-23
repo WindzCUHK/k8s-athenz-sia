@@ -76,9 +76,16 @@ func fetchAccessToken(ztsClient *zts.ZTSClient, t CacheKey, saService string) (*
 }
 
 func fetchRoleToken(ztsClient *zts.ZTSClient, t CacheKey) (*RoleToken, error) {
-	minExpiry := int32(t.MinExpiry)
-	maxExpiry := int32(t.MaxExpiry)
-	roletokenResponse, err := ztsClient.GetRoleToken(zts.DomainName(t.Domain), zts.EntityList(t.Role), &minExpiry, &maxExpiry, zts.EntityName(t.ProxyForPrincipal))
+	var minExpiry, maxExpiry *int32
+	if t.MinExpiry != 0 {
+		e := int32(t.MinExpiry)
+		minExpiry = &e
+	}
+	if t.MaxExpiry != 0 {
+		e := int32(t.MaxExpiry)
+		maxExpiry = &e
+	}
+	roletokenResponse, err := ztsClient.GetRoleToken(zts.DomainName(t.Domain), zts.EntityList(t.Role), minExpiry, maxExpiry, zts.EntityName(t.ProxyForPrincipal))
 	if err != nil || roletokenResponse.Token == "" {
 		return nil, fmt.Errorf("GetRoleToken failed for target [%s], err: %v", t.String(), err)
 	}

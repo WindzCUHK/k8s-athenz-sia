@@ -201,13 +201,11 @@ func Tokend(idConfig *config.IdentityConfig, stopChan <-chan struct{}) (error, <
 		return nil, nil
 	}
 
-	log.Infof("newDaemon")
 	d, err := newDaemon(idConfig, tt)
 	if err != nil {
 		return err, nil
 	}
 
-	log.Infof("initialize")
 	// initialize
 	err = d.updateTokenWithRetry()
 	if err != nil {
@@ -219,7 +217,6 @@ func Tokend(idConfig *config.IdentityConfig, stopChan <-chan struct{}) (error, <
 		return nil, nil
 	}
 
-	log.Infof("start token server")
 	// start token server
 	httpServer := &http.Server{
 		Addr:    idConfig.TokenServerAddr,
