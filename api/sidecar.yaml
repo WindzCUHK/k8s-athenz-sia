@@ -15,10 +15,6 @@ servers:
     url: http://localhost:8080
 paths:
   /roletoken:
-    get:
-      responses:
-        "405":
-          $ref: '#/components/responses/MethodNotAllowed'
     post:
       summary: Get cached role token
       operationId: GetRoleToken
@@ -46,13 +42,13 @@ components:
                 min_expiry: 100
                 max_expiry: 1000
   responses:
-    MethodNotAllowed:
-      description: Method Not Allowed
-      content:
-        "*/*":
-          examples:
-            sample:
-              value: Method Not Allowed
+    # MethodNotAllowed:
+    #   description: Method Not Allowed
+    #   content:
+    #     "*/*":
+    #       examples:
+    #         sample:
+    #           value: Method Not Allowed
     InternalServerError:
       description: Internal Server Error (includes token not found, errors in requesting Athenz ZTS server, and other internal errors)
       content:

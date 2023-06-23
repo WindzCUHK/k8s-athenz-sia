@@ -15,13 +15,6 @@ const (
 )
 
 func postRoleToken(d *daemon, w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		errMsg := fmt.Sprintf("Method: %s\t%s", r.Method, http.StatusText(http.StatusMethodNotAllowed))
-		http.Error(w, errMsg, http.StatusMethodNotAllowed)
-		log.Warnf(errMsg)
-		return
-	}
-
 	var err error
 	defer func() {
 		if err != nil {
@@ -90,8 +83,8 @@ func postRoleToken(d *daemon, w http.ResponseWriter, r *http.Request) {
 func newHandlerFunc(d *daemon) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// sidecar API
-		if r.RequestURI == "/roletoken" {
+		// sidecar API (server requests' Body is always non-nil)
+		if r.RequestURI == "/roletoken" && r.Method == http.MethodPost {
 			postRoleToken(d, w, r)
 			return
 		}
