@@ -57,6 +57,7 @@ func newZTSClient(keyPath, certPath, serverCAPath, endpoint string) (*zts.ZTSCli
 	//
 	// The intermediate certificates may be different between each ZTS.
 	// Therefore, ZTS Client for PostRoleCertificateRequest must share the same endpoint as PostInstanceRegisterInformation/PostInstanceRefreshInformation
+	log.Infof("Create ZTS client to fetch tokens: %s, %+v", endpoint, t)
 	ztsClient := zts.NewClient(endpoint, t)
 	return &ztsClient, nil
 }
