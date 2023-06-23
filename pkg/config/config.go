@@ -17,6 +17,7 @@ package config
 import (
 	"flag"
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
@@ -84,13 +85,27 @@ func (idConfig *IdentityConfig) loadFromYAML(configFilePath string) error {
 	// TokenExpiry == 0, request to ZTS without param
 	// TokenRefresh == 0, use default 30min
 
+	forceHTTPSScheme := func(s string) (string, error) {
+		u, err := url.Parse(s)
+		if err != nil {
+			return "", err
+		}
+		u.Scheme = "https"
+		return u.String(), nil
+	}
+
 	// parse values from config file
 	idConfig.TokenServerAddr = fmt.Sprintf("%s:%d", yamlCfg.Server.Address, yamlCfg.Server.Port)
 	rtEnable := yamlCfg.RoleToken.Enable
 	if rtEnable {
+		endpoint, err := forceHTTPSScheme(yamlCfg.RoleToken.AthenzURL)
+		if err != nil {
+			return err
+		}
+
 		idConfig.TokenType += "roletoken+"
 		// ignore yamlCfg.RoleToken.PrincipalAuthHeader
-		idConfig.Endpoint = yamlCfg.RoleToken.AthenzURL
+		idConfig.Endpoint = endpoint
 		idConfig.ServerCACert = file.GetActualValue(yamlCfg.RoleToken.AthenzCAPath)
 		idConfig.KeyFile = yamlCfg.RoleToken.CertKeyPath
 		idConfig.CertFile = yamlCfg.RoleToken.CertPath
@@ -100,9 +115,14 @@ func (idConfig *IdentityConfig) loadFromYAML(configFilePath string) error {
 	}
 	atEnable := yamlCfg.AccessToken.Enable
 	if atEnable {
+		endpoint, err := forceHTTPSScheme(yamlCfg.AccessToken.AthenzURL)
+		if err != nil {
+			return err
+		}
+
 		idConfig.TokenType += "accesstoken+"
 		// ignore yamlCfg.AccessToken.PrincipalAuthHeader
-		idConfig.Endpoint = yamlCfg.AccessToken.AthenzURL
+		idConfig.Endpoint = endpoint
 		idConfig.ServerCACert = file.GetActualValue(yamlCfg.AccessToken.AthenzCAPath)
 		idConfig.KeyFile = yamlCfg.AccessToken.CertKeyPath
 		idConfig.CertFile = yamlCfg.AccessToken.CertPath
