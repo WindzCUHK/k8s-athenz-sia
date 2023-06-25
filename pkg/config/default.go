@@ -19,10 +19,6 @@ import (
 	"time"
 )
 
-const (
-	DEFAULT_SIDECAR_CONFIG_PATH = "/etc/athenz/client/config.yaml"
-)
-
 var (
 	// default values for X.509 certificate signing request
 	DEFAULT_COUNTRY             = "US"
@@ -94,7 +90,6 @@ func DefaultIdentityConfig() *IdentityConfig {
 		rawTokenRefresh:       DEFAULT_TOKEN_REFRESH.String(),
 		rawTokenExpiry:        DEFAULT_TOKEN_EXPIRY.String(),
 		rawDeleteInstanceID:   "true",
-		rawSidecarConfigPath:  DEFAULT_SIDECAR_CONFIG_PATH,
 
 		Reloader: nil,
 	}

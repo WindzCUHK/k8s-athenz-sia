@@ -24,7 +24,6 @@ import (
 	"github.com/pkg/errors"
 
 	athenz "github.com/AthenZ/athenz/libs/go/sia/util"
-	"github.com/AthenZ/k8s-athenz-sia/pkg/config/file"
 	"github.com/AthenZ/k8s-athenz-sia/third_party/log"
 	"github.com/AthenZ/k8s-athenz-sia/third_party/util"
 )
@@ -38,17 +37,13 @@ func LoadConfig(program string, args []string) (*IdentityConfig, error) {
 	// https://github.com/AthenZ/k8s-athenz-sia/blob/c06c60df9e46caf7e0318e7be50257d2527c80e7/cmd/athenz-sia/main.go#LL226C24-L226C24
 	flag.CommandLine.Parse([]string{}) // initialize glog with defaults
 
-	// read file path ONLY to alllow reading config file before args
-	pathOnlyCfg := DefaultIdentityConfig()
-	if err := pathOnlyCfg.loadFromFlag(program, args); err != nil {
-		return nil, err
+	// show version
+	if len(args) == 1 && args[0] == "version" {
+		return nil, ErrVersion
 	}
 
 	// load with reverse precedence order
 	idConfig := DefaultIdentityConfig()
-	if err := idConfig.loadFromYAML(pathOnlyCfg.rawSidecarConfigPath); err != nil {
-		return nil, err
-	}
 	if err := idConfig.loadFromENV(); err != nil {
 		return nil, err
 	}
@@ -60,76 +55,6 @@ func LoadConfig(program string, args []string) (*IdentityConfig, error) {
 		return nil, err
 	}
 	return idConfig, nil
-}
-
-func (idConfig *IdentityConfig) loadFromYAML(configFilePath string) error {
-
-	yamlCfg, err := file.New(configFilePath)
-	if err != nil {
-		if !os.IsNotExist(err) || configFilePath != DEFAULT_SIDECAR_CONFIG_PATH {
-			return err
-		}
-		// skip, if config file IsNotExist AND file path == default
-		return nil
-	}
-
-	// unset SIA default to sidecar default
-	idConfig.TokenType = ""
-
-	// TODO: remove this comment
-	// sidecar spec:
-	// TokenRefresh > TokenExpiry, return error
-	// TokenExpiry == 0, request to ZTS without param
-	// TokenRefresh == 0, use default 30min
-
-	// parse values from config file
-	idConfig.TokenServerAddr = fmt.Sprintf("%s:%d", yamlCfg.Server.Address, yamlCfg.Server.Port)
-	rtEnable := yamlCfg.RoleToken.Enable
-	if rtEnable {
-		idConfig.TokenType += "roletoken+"
-		// ignore yamlCfg.RoleToken.PrincipalAuthHeader
-		idConfig.Endpoint = yamlCfg.RoleToken.AthenzURL
-		idConfig.ServerCACert = file.GetActualValue(yamlCfg.RoleToken.AthenzCAPath)
-		idConfig.KeyFile = yamlCfg.RoleToken.CertKeyPath
-		idConfig.CertFile = yamlCfg.RoleToken.CertPath
-		idConfig.rawTokenExpiry = yamlCfg.RoleToken.Expiry
-		idConfig.rawTokenRefresh = yamlCfg.RoleToken.RefreshPeriod
-		// ignore yamlCfg.RoleToken.Retry
-	}
-	atEnable := yamlCfg.AccessToken.Enable
-	if atEnable {
-		idConfig.TokenType += "accesstoken+"
-		// ignore yamlCfg.AccessToken.PrincipalAuthHeader
-		idConfig.Endpoint = yamlCfg.AccessToken.AthenzURL
-		idConfig.ServerCACert = file.GetActualValue(yamlCfg.AccessToken.AthenzCAPath)
-		idConfig.KeyFile = yamlCfg.AccessToken.CertKeyPath
-		idConfig.CertFile = yamlCfg.AccessToken.CertPath
-		idConfig.rawTokenExpiry = yamlCfg.AccessToken.Expiry
-		idConfig.rawTokenRefresh = yamlCfg.AccessToken.RefreshPeriod
-		// ignore yamlCfg.AccessToken.Retry
-	}
-	idConfig.TokenRefresh, err = time.ParseDuration(idConfig.rawTokenRefresh)
-	if err != nil {
-		return fmt.Errorf("Invalid expiry in YAML [%q], %v", idConfig.rawTokenRefresh, err)
-	}
-	idConfig.TokenExpiry, err = time.ParseDuration(idConfig.rawTokenExpiry)
-	if err != nil {
-		return fmt.Errorf("Invalid refreshPeriod in YAML [%q], %v", idConfig.rawTokenExpiry, err)
-	}
-	// TODO: parse others values from config file
-
-	if rtEnable && atEnable {
-		if yamlCfg.RoleToken.AthenzURL != yamlCfg.AccessToken.AthenzURL ||
-			yamlCfg.RoleToken.AthenzCAPath != yamlCfg.AccessToken.AthenzCAPath ||
-			yamlCfg.RoleToken.CertKeyPath != yamlCfg.AccessToken.CertKeyPath ||
-			yamlCfg.RoleToken.CertPath != yamlCfg.AccessToken.CertPath ||
-			yamlCfg.RoleToken.Expiry != yamlCfg.AccessToken.Expiry ||
-			yamlCfg.RoleToken.RefreshPeriod != yamlCfg.AccessToken.RefreshPeriod {
-			log.Warnf("Both role token and access token endpoint are enabled, but configurated with different values. Use access token's config, ignore role token's config")
-		}
-	}
-	log.Infof("Successfully loaded configuration from YAML [%s]", configFilePath)
-	return nil
 }
 
 func (idConfig *IdentityConfig) loadFromENV() error {
@@ -172,9 +97,6 @@ func (idConfig *IdentityConfig) loadFromENV() error {
 
 	loadEnv("LOG_DIR", &idConfig.LogDir)
 	loadEnv("LOG_LEVEL", &idConfig.LogLevel)
-
-	// skip, file path from ENV is not supported
-	// loadEnv("SIDECAR_CONFIG_PATH", &idConfig.rawSidecarConfigPath)
 
 	// parse values
 	var err error
@@ -243,17 +165,9 @@ func (idConfig *IdentityConfig) loadFromFlag(program string, args []string) erro
 	// log
 	f.StringVar(&idConfig.LogDir, "log-dir", idConfig.LogDir, "directory to store the log files")
 	f.StringVar(&idConfig.LogLevel, "log-level", idConfig.LogLevel, "logging level")
-	// config file path
-	f.StringVar(&idConfig.rawSidecarConfigPath, "f", idConfig.rawSidecarConfigPath, "config YAML file path")
 
-	// show version
-	var showVersion bool
-	f.BoolVar(&showVersion, "version", false, "show version")
 	if err := f.Parse(args); err != nil {
 		return err
-	}
-	if showVersion {
-		return ErrVersion
 	}
 
 	// parse values
