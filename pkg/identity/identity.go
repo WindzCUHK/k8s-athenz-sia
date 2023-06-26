@@ -338,7 +338,7 @@ func (h *identityHandler) GetX509RoleCert(id *InstanceIdentity, keyPEM []byte) (
 		}
 		roleRequest := &zts.RoleCertificateRequest{
 			Csr:        string(roleCsrPEM),
-			ExpiryTime: int64(x509LeafCert.NotAfter.Sub(time.Now()).Minutes()) + int64(config.DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES_INT), // Extract NotAfter from the instance certificate
+			ExpiryTime: int64(x509LeafCert.NotAfter.Sub(time.Now()).Minutes()) + int64(config.DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES), // Extract NotAfter from the instance certificate
 		}
 
 		// PostRoleCertificateRequest must be called instead of PostRoleCertificateRequestExt,
