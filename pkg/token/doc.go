@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package token defines tokens that can be used as identity in RBAC authorization.
+// Package token defines tokens that serve as credentials in RBAC authorization.
 package token
 
 //go:generate oapi-codegen -package token -generate types -o ./sidecar.gen.go ../../api/sidecar.yaml
