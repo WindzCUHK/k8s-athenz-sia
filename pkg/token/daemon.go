@@ -44,6 +44,7 @@ type daemon struct {
 	ztsClient *zts.ZTSClient
 	saService string
 
+	tokenAPIEnable      bool
 	tokenType           Type
 	tokenDir            string
 	tokenRefresh        time.Duration
@@ -98,6 +99,7 @@ func newDaemon(idConfig *config.IdentityConfig, tt Type) (*daemon, error) {
 		ztsClient: ztsClient,
 		saService: saService,
 
+		tokenAPIEnable:      idConfig.TokenServerAPIEnable,
 		tokenType:           tt,
 		tokenDir:            idConfig.TokenDir,
 		tokenRefresh:        idConfig.TokenRefresh,

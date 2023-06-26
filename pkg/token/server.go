@@ -97,10 +97,12 @@ func postRoleToken(d *daemon, w http.ResponseWriter, r *http.Request) {
 func newHandlerFunc(d *daemon) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// sidecar API (server requests' Body is always non-nil)
-		if r.RequestURI == "/roletoken" && r.Method == http.MethodPost {
-			postRoleToken(d, w, r)
-			return
+		if d.tokenAPIEnable {
+			// sidecar API (server requests' Body is always non-nil)
+			if r.RequestURI == "/roletoken" && r.Method == http.MethodPost {
+				postRoleToken(d, w, r)
+				return
+			}
 		}
 
 		// API for envoy (all methods and paths)

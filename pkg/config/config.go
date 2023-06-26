@@ -88,6 +88,7 @@ func (idConfig *IdentityConfig) loadFromENV() error {
 	loadEnv("TOKEN_REFRESH_INTERVAL", &idConfig.rawTokenRefresh)
 	loadEnv("TOKEN_EXPIRY", &idConfig.rawTokenExpiry)
 	loadEnv("TOKEN_SERVER_ADDR", &idConfig.TokenServerAddr)
+	loadEnv("TOKEN_SERVER_API_ENABLE", &idConfig.rawTokenServerAPIEnable)
 	loadEnv("TOKEN_DIR", &idConfig.TokenDir)
 	loadEnv("METRICS_SERVER_ADDR", &idConfig.MetricsServerAddr)
 	loadEnv("DELETE_INSTANCE_ID", &idConfig.rawDeleteInstanceID)
@@ -116,6 +117,10 @@ func (idConfig *IdentityConfig) loadFromENV() error {
 	idConfig.TokenExpiry, err = time.ParseDuration(idConfig.rawTokenExpiry)
 	if err != nil {
 		return fmt.Errorf("Invalid TOKEN_EXPIRY [%q], %v", idConfig.rawTokenExpiry, err)
+	}
+	idConfig.TokenServerAPIEnable, err = strconv.ParseBool(idConfig.rawTokenServerAPIEnable)
+	if err != nil {
+		return fmt.Errorf("Invalid TOKEN_SERVER_API_ENABLE [%q], %v", idConfig.rawTokenServerAPIEnable, err)
 	}
 	idConfig.DeleteInstanceID, err = strconv.ParseBool(idConfig.rawDeleteInstanceID)
 	if err != nil {
@@ -156,6 +161,7 @@ func (idConfig *IdentityConfig) loadFromFlag(program string, args []string) erro
 	f.DurationVar(&idConfig.TokenRefresh, "token-refresh-interval", idConfig.TokenRefresh, "token refresh interval")
 	f.DurationVar(&idConfig.TokenExpiry, "token-expiry", idConfig.TokenExpiry, "token expiry duration")
 	f.StringVar(&idConfig.TokenServerAddr, "token-server-addr", idConfig.TokenServerAddr, "HTTP server address to provide tokens (required for token provisioning)")
+	f.BoolVar(&idConfig.TokenServerAPIEnable, "token-server-api-enable", idConfig.TokenServerAPIEnable, "Enable token server RESTful API")
 	f.StringVar(&idConfig.TokenDir, "token-dir", idConfig.TokenDir, "directory to write token files")
 	f.StringVar(&idConfig.MetricsServerAddr, "metrics-server-addr", idConfig.MetricsServerAddr, "HTTP server address to provide metrics")
 	f.BoolVar(&idConfig.DeleteInstanceID, "delete-instance-id", idConfig.DeleteInstanceID, "delete x509 certificate record from identity provider when stop signal is sent")
