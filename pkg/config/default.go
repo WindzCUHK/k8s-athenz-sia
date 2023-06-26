@@ -15,12 +15,9 @@
 package config
 
 import (
+	"fmt"
 	"strconv"
 	"time"
-)
-
-const (
-	DEFAULT_SIDECAR_CONFIG_PATH = "/etc/athenz/client/config.yaml"
 )
 
 var (
@@ -31,12 +28,13 @@ var (
 	DEFAULT_ORGANIZATIONAL_UNIT = "Athenz"
 
 	// default values for role tokens and access tokens
-	DEFAULT_TOKEN_REFRESH = 30 * time.Minute
-	DEFAULT_TOKEN_EXPIRY  = time.Duration(0)
+	DEFAULT_TOKEN_REFRESH    = 30 * time.Minute
+	DEFAULT_TOKEN_EXPIRY_RAW = "0"
+	DEFAULT_TOKEN_EXPIRY     = time.Duration(0)
 
 	// DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES may be overwritten with go build option (e.g. "-X identity.DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES=5")
-	DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES     = "5"
-	DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES_INT int
+	DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES_RAW = "5"
+	DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES     = 5
 
 	DEFAULT_ENDPOINT                     string
 	DEFAULT_ROLE_AUTH_HEADER             = "Athenz-Role-Auth"
@@ -46,8 +44,17 @@ var (
 )
 
 func init() {
+	var err error
+
 	// initializes default values from build args
-	DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES_INT, _ = strconv.Atoi(DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES)
+	DEFAULT_TOKEN_EXPIRY, err = time.ParseDuration(DEFAULT_TOKEN_EXPIRY_RAW)
+	if err != nil {
+		panic(fmt.Errorf("Invalid build flag: DEFAULT_TOKEN_EXPIRY_RAW[%v]", DEFAULT_TOKEN_EXPIRY_RAW))
+	}
+	DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES, err = strconv.Atoi(DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES_RAW)
+	if err != nil {
+		panic(fmt.Errorf("Invalid build flag: DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES_RAW[%v]", DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES_RAW))
+	}
 }
 
 func DefaultIdentityConfig() *IdentityConfig {
@@ -94,7 +101,6 @@ func DefaultIdentityConfig() *IdentityConfig {
 		rawTokenRefresh:       DEFAULT_TOKEN_REFRESH.String(),
 		rawTokenExpiry:        DEFAULT_TOKEN_EXPIRY.String(),
 		rawDeleteInstanceID:   "true",
-		rawSidecarConfigPath:  DEFAULT_SIDECAR_CONFIG_PATH,
 
 		Reloader: nil,
 	}

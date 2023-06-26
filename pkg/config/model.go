@@ -66,5 +66,4 @@ type IdentityConfig struct {
 	rawTokenRefresh       string
 	rawTokenExpiry        string
 	rawDeleteInstanceID   string
-	rawSidecarConfigPath  string
 }

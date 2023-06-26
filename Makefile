@@ -42,8 +42,11 @@ endif
 ifneq ($(ATHENZ_SIA_DEFAULT_ORGANIZATIONAL_UNIT),)
 LDFLAGS_ARGS += -X 'github.com/AthenZ/k8s-athenz-sia/pkg/config.DEFAULT_ORGANIZATIONAL_UNIT=$(ATHENZ_SIA_DEFAULT_ORGANIZATIONAL_UNIT)'
 endif
-ifneq ($(ATHENZ_SIA_DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES),)
-LDFLAGS_ARGS += -X 'github.com/AthenZ/k8s-athenz-sia/pkg/config.DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES=$(ATHENZ_SIA_DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES)'
+ifneq ($(ATHENZ_SIA_DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES_RAW),)
+LDFLAGS_ARGS += -X 'github.com/AthenZ/k8s-athenz-sia/pkg/config.DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES_RAW=$(ATHENZ_SIA_DEFAULT_ROLE_CERT_EXPIRY_TIME_BUFFER_MINUTES_RAW)'
+endif
+ifneq ($(ATHENZ_SIA_DEFAULT_TOKEN_EXPIRY_RAW),)
+LDFLAGS_ARGS += -X 'github.com/AthenZ/k8s-athenz-sia/pkg/config.DEFAULT_TOKEN_EXPIRY_RAW=$(ATHENZ_SIA_DEFAULT_TOKEN_EXPIRY_RAW)'
 endif
 ifneq ($(ATHENZ_SIA_DEFAULT_INTERMEDIATE_CERT_BUNDLE),)
 LDFLAGS_ARGS += -X 'github.com/AthenZ/k8s-athenz-sia/pkg/config.DEFAULT_INTERMEDIATE_CERT_BUNDLE=$(ATHENZ_SIA_DEFAULT_INTERMEDIATE_CERT_BUNDLE)'
@@ -62,6 +65,10 @@ test:
 	@echo "Testing..."
 	go test -v -failfast -timeout 1m -race -covermode=atomic -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out -o coverage.html
+
+upgrade:
+	go list -u -m all
+	go get -t -u ./...
 
 clean:
 	rm -rf $(shell pwd)/bin || true
