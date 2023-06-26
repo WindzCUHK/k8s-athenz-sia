@@ -16,8 +16,8 @@ servers:
 paths:
   /roletoken:
     post:
-      summary: Get cached role token
-      operationId: GetRoleToken
+      summary: Fetch cached role token
+      operationId: FetchRoleToken
       requestBody:
         $ref: '#/components/requestBodies/rtRequestBody'
       responses:
