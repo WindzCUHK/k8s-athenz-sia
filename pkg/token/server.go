@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/AthenZ/k8s-athenz-sia/third_party/log"
 )
@@ -69,9 +70,9 @@ func postRoleToken(d *daemon, w http.ResponseWriter, r *http.Request) {
 		k.MinExpiry = d.tokenExpiryInSecond
 	}
 
-	// cache lookup
+	// cache lookup (token TTL must >= 1 minute)
 	rToken := d.roleTokenCache.Load(k)
-	if rToken == nil {
+	if rToken == nil || time.Unix(rToken.Expiry(), 0).Sub(time.Now()) <= time.Minute {
 		log.Debugf("Role token cache miss, attempting to fetch token from Athenz ZTS server: target[%s]", k.String())
 		// on cache miss, fetch token from Athenz ZTS server
 		rToken, err = fetchRoleToken(d.ztsClient, k)
