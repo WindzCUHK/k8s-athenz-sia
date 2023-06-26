@@ -50,5 +50,5 @@ type RtResponse = RoleTokenResponse
 // RtRequestBody defines model for rtRequestBody.
 type RtRequestBody = RoleTokenRequestBody
 
-// GetRoleTokenJSONRequestBody defines body for GetRoleToken for application/json ContentType.
-type GetRoleTokenJSONRequestBody = RoleTokenRequestBody
+// FetchRoleTokenJSONRequestBody defines body for FetchRoleToken for application/json ContentType.
+type FetchRoleTokenJSONRequestBody = RoleTokenRequestBody
