@@ -31,7 +31,7 @@ import (
 var ErrHelp = flag.ErrHelp
 var ErrVersion = errors.New("flag: version requested")
 
-// LoadConfig reads YAML, ENV and args, and then returns an IdentityConfig object (precedence: args > ENV > YAML).
+// LoadConfig reads from ENV and args, and then returns an IdentityConfig object (precedence: args > ENV > default).
 func LoadConfig(program string, args []string) (*IdentityConfig, error) {
 
 	// https://github.com/AthenZ/k8s-athenz-sia/blob/c06c60df9e46caf7e0318e7be50257d2527c80e7/cmd/athenz-sia/main.go#LL226C24-L226C24
