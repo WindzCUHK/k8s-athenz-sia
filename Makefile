@@ -58,7 +58,6 @@ endif
 
 build: submodule-update
 	@echo "Building..."
-	go mod tidy
 	CGO_ENABLED=0 go build $(LDFLAGS) -o $(GOPATH)/bin/athenz-sia cmd/athenz-sia/*.go
 
 test:
