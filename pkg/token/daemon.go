@@ -27,10 +27,10 @@ import (
 	"github.com/cenkalti/backoff"
 	"github.com/pkg/errors"
 
-	"github.com/AthenZ/k8s-athenz-sia/pkg/config"
-	extutil "github.com/AthenZ/k8s-athenz-sia/pkg/util"
-	"github.com/AthenZ/k8s-athenz-sia/third_party/log"
-	"github.com/AthenZ/k8s-athenz-sia/third_party/util"
+	"github.com/AthenZ/k8s-athenz-sia/v3/pkg/config"
+	extutil "github.com/AthenZ/k8s-athenz-sia/v3/pkg/util"
+	"github.com/AthenZ/k8s-athenz-sia/v3/third_party/log"
+	"github.com/AthenZ/k8s-athenz-sia/v3/third_party/util"
 )
 
 type daemon struct {

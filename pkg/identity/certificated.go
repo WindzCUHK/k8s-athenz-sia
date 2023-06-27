@@ -22,10 +22,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AthenZ/k8s-athenz-sia/pkg/config"
-	"github.com/AthenZ/k8s-athenz-sia/pkg/token"
-	"github.com/AthenZ/k8s-athenz-sia/third_party/log"
-	"github.com/AthenZ/k8s-athenz-sia/third_party/util"
+	"github.com/AthenZ/k8s-athenz-sia/v3/pkg/config"
+	"github.com/AthenZ/k8s-athenz-sia/v3/pkg/token"
+	"github.com/AthenZ/k8s-athenz-sia/v3/third_party/log"
+	"github.com/AthenZ/k8s-athenz-sia/v3/third_party/util"
 	"github.com/cenkalti/backoff"
 	"github.com/pkg/errors"
 )

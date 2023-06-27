@@ -24,8 +24,8 @@ import (
 	"github.com/pkg/errors"
 
 	athenz "github.com/AthenZ/athenz/libs/go/sia/util"
-	"github.com/AthenZ/k8s-athenz-sia/third_party/log"
-	"github.com/AthenZ/k8s-athenz-sia/third_party/util"
+	"github.com/AthenZ/k8s-athenz-sia/v3/third_party/log"
+	"github.com/AthenZ/k8s-athenz-sia/v3/third_party/util"
 )
 
 var ErrHelp = flag.ErrHelp

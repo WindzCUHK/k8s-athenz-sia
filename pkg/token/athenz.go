@@ -23,7 +23,7 @@ import (
 
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/athenzutils"
-	"github.com/AthenZ/k8s-athenz-sia/third_party/log"
+	"github.com/AthenZ/k8s-athenz-sia/v3/third_party/log"
 )
 
 func newZTSClient(keyPath, certPath, serverCAPath, endpoint string) (*zts.ZTSClient, error) {

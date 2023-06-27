@@ -33,13 +33,13 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/AthenZ/k8s-athenz-sia/pkg/config"
-	"github.com/AthenZ/k8s-athenz-sia/pkg/k8s"
-	"github.com/AthenZ/k8s-athenz-sia/third_party/log"
-	"github.com/AthenZ/k8s-athenz-sia/third_party/util"
+	"github.com/AthenZ/k8s-athenz-sia/v3/pkg/config"
+	"github.com/AthenZ/k8s-athenz-sia/v3/pkg/k8s"
+	"github.com/AthenZ/k8s-athenz-sia/v3/third_party/log"
+	"github.com/AthenZ/k8s-athenz-sia/v3/third_party/util"
 
 	"github.com/AthenZ/athenz/clients/go/zts"
-	extutil "github.com/AthenZ/k8s-athenz-sia/pkg/util"
+	extutil "github.com/AthenZ/k8s-athenz-sia/v3/pkg/util"
 )
 
 // RoleCertificate stores role certificate

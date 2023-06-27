@@ -21,7 +21,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/AthenZ/k8s-athenz-sia/third_party/log"
+	"github.com/AthenZ/k8s-athenz-sia/v3/third_party/log"
 )
 
 const (
