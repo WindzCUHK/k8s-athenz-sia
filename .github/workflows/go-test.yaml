@@ -67,10 +67,11 @@ jobs:
       # This action uploads coverage to Codecov.
       # https://github.com/codecov/codecov-action
       -
-        name: Upload coverage to Codecov
+        name: Upload coverage reports to Codecov
         id: go-coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.out
           flags: unittests
           fail_ci_if_error: true
