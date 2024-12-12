@@ -76,7 +76,7 @@ jobs:
           flags: unittests
           fail_ci_if_error: true
           verbose: true
-          version: "v5.0.7"
+          # version: "latest"
 
       # https://github.com/apache/skywalking-eyes
       # issue: go version hard-coded: https://github.com/apache/skywalking-eyes/blob/5dfa68f93380a5e57259faaf95088b7f133b5778/header/action.yml#L47-L51
