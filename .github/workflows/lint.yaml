@@ -6,7 +6,7 @@ on:
   # workflows triggered on the push or pull_request events will be skipped.
   # https://github.blog/changelog/2021-02-08-github-actions-skip-pull-request-and-push-workflows-with-skip-ci/
   push:
-    branches: [ master ]
+    branches: [ main ]
     # Publish semver tags as releases.
     tags: [ 'v[0-9]+.[0-9]+.[0-9]+' ]
   # If any commit message in your push or the HEAD commit of your PR contains the strings
@@ -14,10 +14,10 @@ on:
   # workflows triggered on the push or pull_request events will be skipped.
   # https://github.blog/changelog/2021-02-08-github-actions-skip-pull-request-and-push-workflows-with-skip-ci/
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 env:
-  GOLANG_VERSION: ^1.19
+  GOLANG_VERSION: ^1.23
 
 jobs:
   # This job runs golangci-lint and reports issues from linters.
