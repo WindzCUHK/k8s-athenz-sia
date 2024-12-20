@@ -69,14 +69,14 @@ jobs:
       -
         name: Upload coverage reports to Codecov
         id: go-coverage
-        uses: codecov/codecov-action@v5.0.7
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.out
           flags: unittests
           fail_ci_if_error: true
           verbose: true
-          # version: "latest"
+          version: "latest"
 
       # https://github.com/apache/skywalking-eyes
       # issue: go version hard-coded: https://github.com/apache/skywalking-eyes/blob/5dfa68f93380a5e57259faaf95088b7f133b5778/header/action.yml#L47-L51
