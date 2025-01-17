@@ -43,7 +43,6 @@ var (
 	DEFAULT_ROLE_CERT_FILENAME_DELIMITER    = ":role."
 	DEFAULT_ACCESS_TOKEN_FILENAME_DELIMITER = ":role."
 	DEFAULT_ROLE_TOKEN_FILENAME_DELIMITER   = ":role."
-	DEFAULT_INTERMEDIATE_CERT_BUNDLE        string
 
 	// default values for graceful shutdown
 	DEFAULT_SHUTDOWN_TIMEOUT = 5 * time.Second
@@ -78,7 +77,6 @@ func DefaultIdentityConfig() *IdentityConfig {
 		KeyFile:                      "",
 		CertFile:                     "",
 		CaCertFile:                   "",
-		IntermediateCertBundle:       DEFAULT_INTERMEDIATE_CERT_BUNDLE,
 		backup:                       "",
 		certSecret:                   "",
 		Namespace:                    "",

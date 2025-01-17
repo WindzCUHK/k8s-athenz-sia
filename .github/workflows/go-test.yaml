@@ -64,6 +64,20 @@ jobs:
           go version
           make test
 
+      # This action uploads coverage to Codecov.
+      # https://github.com/codecov/codecov-action
+      -
+        name: Upload coverage reports to Codecov
+        id: go-coverage
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.out
+          flags: unittests
+          fail_ci_if_error: false # TODO
+          verbose: true
+          version: "latest"
+
       # https://github.com/apache/skywalking-eyes
       # issue: go version hard-coded: https://github.com/apache/skywalking-eyes/blob/5dfa68f93380a5e57259faaf95088b7f133b5778/header/action.yml#L47-L51
       - name: Check License Header

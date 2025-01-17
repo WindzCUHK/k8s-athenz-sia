@@ -1,0 +1,135 @@
+name: lint
+
+on:
+  # If any commit message in your push or the HEAD commit of your PR contains the strings
+  # [skip ci], [ci skip], [no ci], [skip actions], or [actions skip]
+  # workflows triggered on the push or pull_request events will be skipped.
+  # https://github.blog/changelog/2021-02-08-github-actions-skip-pull-request-and-push-workflows-with-skip-ci/
+  push:
+    branches: [ main ]
+    # Publish semver tags as releases.
+    tags: [ 'v[0-9]+.[0-9]+.[0-9]+' ]
+  # If any commit message in your push or the HEAD commit of your PR contains the strings
+  # [skip ci], [ci skip], [no ci], [skip actions], or [actions skip]
+  # workflows triggered on the push or pull_request events will be skipped.
+  # https://github.blog/changelog/2021-02-08-github-actions-skip-pull-request-and-push-workflows-with-skip-ci/
+  pull_request:
+    branches: [ main ]
+
+env:
+  GOLANG_VERSION: ^1.23
+
+jobs:
+  # This job runs golangci-lint and reports issues from linters.
+  # https://github.com/golangci/golangci-lint-action
+  golangci-lint:
+    name: golangci-lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Setup Golang
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        # continue-on-error: true
+        with:
+          # Optional: version of golangci-lint to use in form of v1.2 or v1.2.3 or `latest` to use the latest version
+          version: "latest"
+          # Optional: golangci-lint command line arguments.
+          args: --issues-exit-code=0 -c ./.golangci.yml
+
+  # This job runs markdownlint and reports issues from linters.
+  # https://github.com/DavidAnson/markdownlint-cli2-action
+  markdownlint:
+    name: markdownlint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: markdownlint
+        uses: DavidAnson/markdownlint-cli2-action@v7
+        continue-on-error: true
+        with:
+          globs: |
+            README.md
+            CHANGELOG.md
+            docs/*.md
+
+  CodeQL:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['go']
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+  # code-review:
+  #   name: App Code Review
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #     pull-requests: write
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       language: ['go']
+  #   steps:
+  #     - uses: fitomad/github-chatgpt-integration@main
+  #       with:
+  #         openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+  #         github-token: ${{ secrets.GITHUB_TOKEN }}
+  #         github-pr-id: ${{ github.event.number }}
+  #         dev-lang: go
+  #         openai-max-tokens: 4096
+
+  CodeReview:
+    # if: ${{ contains(github.event.*.labels.*.name, 'gpt review') }} # Optional; to run only when a label is attached
+    runs-on: ubuntu-latest
+    steps:
+      - uses: anc95/ChatGPT-CodeReview@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          # Optional
+          LANGUAGE: Japanese
+          OPENAI_API_ENDPOINT: https://api.openai.com/v1
+          MODEL: gpt-3.5-turbo # https://platform.openai.com/docs/models
+          # PROMPT: |
+          #   あなたは技術記事を書くプロのライターです。回答は日本語でお願いします。
+          #   渡された技術情報について、わかりやすく、読みやすい記事になるようレビューしてください。
+          #   特に以下の点に注意してください:
+          #     - 誤字脱字や文法ミスを指摘すること
+          #     - 読者が初心者から中級者であることを想定して、専門用語の説明を含めること
+          #     - 技術的なコンセプトやプロセスをステップバイステップで説明すること
+          #     - 実例やコードサンプルを使って具体的に説明すること
+          #     - 視覚的に分かりやすい図やイラストを追加する提案をすること
+          #     - 重要なポイントを強調し、要点をまとめること
+          #     - 個人的な見解や感想は、客観的事実と異なると分かるようにすること
+          PROMPT: "check for race conditions in the code"
+          top_p: 1 # https://platform.openai.com/docs/api-reference/chat/create#chat/create-top_p
+          temperature: 1 # https://platform.openai.com/docs/api-reference/chat/create#chat/create-temperature
+          max_tokens: 4096
+          MAX_PATCH_LENGTH: 4096 # if the patch/diff length is large than MAX_PATCH_LENGTH, will be ignored and won't review. By default, with no MAX_PATCH_LENGTH set, there is also no limit for the patch/diff length.
+          IGNORE_PATTERNS: /node_modules/**/*,*.md # glob pattern or regex pattern to ignore files, separated by comma
+          INCLUDE_PATTERNS: "*.go" # glob pattern or regex pattern to include files, separated by comma

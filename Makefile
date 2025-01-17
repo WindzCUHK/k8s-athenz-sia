@@ -48,9 +48,6 @@ endif
 ifneq ($(ATHENZ_SIA_DEFAULT_TOKEN_EXPIRY_RAW),)
 LDFLAGS_ARGS += -X 'github.com/AthenZ/k8s-athenz-sia/v3/pkg/config.DEFAULT_TOKEN_EXPIRY_RAW=$(ATHENZ_SIA_DEFAULT_TOKEN_EXPIRY_RAW)'
 endif
-ifneq ($(ATHENZ_SIA_DEFAULT_INTERMEDIATE_CERT_BUNDLE),)
-LDFLAGS_ARGS += -X 'github.com/AthenZ/k8s-athenz-sia/v3/pkg/config.DEFAULT_INTERMEDIATE_CERT_BUNDLE=$(ATHENZ_SIA_DEFAULT_INTERMEDIATE_CERT_BUNDLE)'
-endif
 ifneq ($(ATHENZ_SIA_DEFAULT_ACCESS_TOKEN_FILENAME_DELIMITER),)
 LDFLAGS_ARGS += -X 'github.com/AthenZ/k8s-athenz-sia/v3/pkg/config.DEFAULT_ACCESS_TOKEN_FILENAME_DELIMITER=$(ATHENZ_SIA_DEFAULT_ACCESS_TOKEN_FILENAME_DELIMITER)'
 endif
@@ -69,7 +66,9 @@ build: submodule-update
 test:
 	@echo "Testing..."
 	go test -v -failfast -timeout 1m -race -covermode=atomic -coverprofile=coverage.out ./...
-	go tool cover -html=coverage.out -o coverage.html
+
+lint:
+	golangci-lint run -c ./.golangci.yml
 
 upgrade:
 	go list -u -m all

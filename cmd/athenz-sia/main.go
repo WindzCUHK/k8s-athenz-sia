@@ -59,6 +59,22 @@ func printVersion() {
 // main should handles MODE=init/refresh, underlying daemon should NOT handle it
 func main() {
 
+	// some thing wrong here
+	c1 := make(chan int)
+	fmt.Println("push c1: ")
+	c1 <- 10
+	g1 := <-c1
+	fmt.Println("get g1: ", g1)
+	/*
+		### output
+		push c1:
+		fatal error: all goroutines are asleep - deadlock!
+		goroutine 1 [chan send]:
+		main.main()
+						D:/Go/projects/hello-world/src/ch9/code9_6/code1.go:10 +0xde
+		Process 6276 has exited with status 2
+	*/
+
 	// one-time logger for loading user config
 	log.InitLogger("", "INFO", true)
 	idCfg, err := config.LoadConfig(config.APP_NAME, os.Args[1:])
