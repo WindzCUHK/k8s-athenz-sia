@@ -33,7 +33,6 @@ type IdentityConfig struct {
 	KeyFile                string
 	CertFile               string
 	CaCertFile             string
-	IntermediateCertBundle string
 	backup                 string
 	certSecret             string
 	Namespace              string

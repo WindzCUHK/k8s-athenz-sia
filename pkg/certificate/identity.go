@@ -268,15 +268,6 @@ func (h *identityHandler) GetX509RoleCert() (rolecerts [](*RoleCertificate), rol
 		return nil, nil, fmt.Errorf("Failed to prepare csr, failed to read private key pem bytes for PostRoleCertificateRequest, err: %v", err)
 	}
 
-	var intermediateCerts string
-	if h.idCfg.IntermediateCertBundle != "" {
-		intermediateCertBundle, err := roleCertClient.GetCertificateAuthorityBundle(zts.SimpleName(h.idCfg.IntermediateCertBundle))
-		if err != nil || intermediateCertBundle == nil || intermediateCertBundle.Certs == "" {
-			return nil, nil, fmt.Errorf("GetCertificateAuthorityBundle failed for role certificate, err: %v", err)
-		}
-		intermediateCerts = intermediateCertBundle.Certs
-	}
-
 	for _, csrOption := range *roleCsrOptions {
 		dr := strings.Split(csrOption.Subject.CommonName, ":role.")
 		roleCsrPEM, err := util.GenerateCSR(key, csrOption)
@@ -309,7 +300,7 @@ func (h *identityHandler) GetX509RoleCert() (rolecerts [](*RoleCertificate), rol
 			NotAfter:        x509RoleCert.NotAfter,
 			SerialNumber:    x509RoleCert.SerialNumber,
 			DNSNames:        x509RoleCert.DNSNames,
-			X509Certificate: roleCert.X509Certificate + intermediateCerts, // Concatenate intermediate certificate with the role certificate
+			X509Certificate: roleCert.X509Certificate, // Concatenate intermediate certificate with the role certificate
 		})
 
 	}
