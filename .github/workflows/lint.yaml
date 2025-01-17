@@ -103,24 +103,6 @@ jobs:
   #         dev-lang: go
   #         openai-max-tokens: 4096
 
-  # python ONLY
-  # code_review_job:
-  #   runs-on: ubuntu-latest
-  #   name: ChatGPT Code Review
-  #   steps:
-  #     - name: GenAI Code Review
-  #       uses: cirolini/genai-code-review@v2
-  #       with:
-  #         openai_api_key: ${{ secrets.OPENAI_API_KEY }}
-  #         github_token: ${{ secrets.GITHUB_TOKEN }}
-  #         github_pr_id: ${{ github.event.number }}
-  #         openai_model: "gpt-3.5-turbo" # optional
-  #         openai_temperature: 0.5 # optional
-  #         openai_max_tokens: 2048 # optional
-  #         mode: patch # files or patch
-  #         language: en # optional, default is 'en'
-  #         custom_prompt: "" # optional
-
   CodeReview:
     # if: ${{ contains(github.event.*.labels.*.name, 'gpt review') }} # Optional; to run only when a label is attached
     runs-on: ubuntu-latest
