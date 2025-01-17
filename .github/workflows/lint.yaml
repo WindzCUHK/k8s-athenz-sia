@@ -102,3 +102,50 @@ jobs:
   #         github-pr-id: ${{ github.event.number }}
   #         dev-lang: go
   #         openai-max-tokens: 4096
+
+  code_review_job:
+    runs-on: ubuntu-latest
+    name: ChatGPT Code Review
+    steps:
+      - name: GenAI Code Review
+        uses: cirolini/genai-code-review@v2
+        with:
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_pr_id: ${{ github.event.number }}
+          openai_model: "gpt-3.5-turbo" # optional
+          openai_temperature: 0.5 # optional
+          openai_max_tokens: 2048 # optional
+          mode: patch # files or patch
+          language: en # optional, default is 'en'
+          custom_prompt: "" # optional
+
+  CodeReview:
+    # if: ${{ contains(github.event.*.labels.*.name, 'gpt review') }} # Optional; to run only when a label is attached
+    runs-on: ubuntu-latest
+    steps:
+      - uses: anc95/ChatGPT-CodeReview@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          # Optional
+          LANGUAGE: Japanese
+          OPENAI_API_ENDPOINT: https://api.openai.com/v1
+          MODEL: gpt-3.5-turbo # https://platform.openai.com/docs/models
+          PROMPT: |
+            あなたは技術記事を書くプロのライターです。回答は日本語でお願いします。
+            渡された技術情報について、わかりやすく、読みやすい記事になるようレビューしてください。
+            特に以下の点に注意してください:
+              - 誤字脱字や文法ミスを指摘すること
+              - 読者が初心者から中級者であることを想定して、専門用語の説明を含めること
+              - 技術的なコンセプトやプロセスをステップバイステップで説明すること
+              - 実例やコードサンプルを使って具体的に説明すること
+              - 視覚的に分かりやすい図やイラストを追加する提案をすること
+              - 重要なポイントを強調し、要点をまとめること
+              - 個人的な見解や感想は、客観的事実と異なると分かるようにすること
+          top_p: 1 # https://platform.openai.com/docs/api-reference/chat/create#chat/create-top_p
+          temperature: 1 # https://platform.openai.com/docs/api-reference/chat/create#chat/create-temperature
+          max_tokens: 4096
+          MAX_PATCH_LENGTH: 4096 # if the patch/diff length is large than MAX_PATCH_LENGTH, will be ignored and won't review. By default, with no MAX_PATCH_LENGTH set, there is also no limit for the patch/diff length.
+          IGNORE_PATTERNS: /node_modules/**/*,*.md # glob pattern or regex pattern to ignore files, separated by comma
+          INCLUDE_PATTERNS: "*.go" # glob pattern or regex pattern to include files, separated by comma
