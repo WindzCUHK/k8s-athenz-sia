@@ -59,6 +59,13 @@ func printVersion() {
 // main should handles MODE=init/refresh, underlying daemon should NOT handle it
 func main() {
 
+	// add deadlock
+	c1 := make(chan int)
+	fmt.Println("push c1: ")
+	c1 <- 10
+	g1 := <-c1
+	fmt.Println("get g1: ", g1)
+
 	// one-time logger for loading user config
 	log.InitLogger("", "INFO", true)
 	idCfg, err := config.LoadConfig(config.APP_NAME, os.Args[1:])
